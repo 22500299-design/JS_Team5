@@ -1,0 +1,1666 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>플래시카드 학습 & 테스트</title>
+  <!-- 예쁜 폰트 (외부 폰트 사용) -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&family=Noto+Sans+KR:wght@300;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-color: #0f172a;
+      --card-bg: #111827;
+      --accent: #38bdf8;
+      --accent-soft: rgba(56,189,248,0.15);
+      --accent-strong: #0ea5e9;
+      --text-main: #e5e7eb;
+      --text-muted: #9ca3af;
+      --danger: #f97373;
+      --border-soft: #1f2937;
+      --shadow-soft: 0 18px 40px rgba(15,23,42,0.9);
+      --radius-lg: 18px;
+      --radius-xl: 22px;
+      --transition-fast: 0.2s ease;
+      /* [시간제한, 스킵 기능 시작] */
+      --timeout-bar-color: #f59e0b; /* 시간 제한 바 색상 */
+      /* [시간제한, 스킵 기능 끝] */
+    }
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Noto Sans KR", "Poppins", system-ui, sans-serif;
+      background: radial-gradient(circle at top, #1f2933, #020617 55%);
+      color: var(--text-main);
+      display: flex;
+      justify-content: center;
+      align-items: stretch;
+    }
+    .app {
+      width: min(1100px, 100%);
+      margin: 20px;
+      border-radius: 24px;
+      background: linear-gradient(145deg, rgba(15,23,42,0.98), rgba(15,23,42,0.9));
+      border: 1px solid rgba(148,163,184,0.18);
+      box-shadow: var(--shadow-soft);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    header {
+      padding: 18px 24px 14px;
+      border-bottom: 1px solid rgba(55,65,81,0.7);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      backdrop-filter: blur(14px);
+      background: radial-gradient(circle at top left, rgba(56,189,248,0.08), transparent 50%);
+    }
+    .title-block {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    header h1 {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    header h1 span.logo-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      background: radial-gradient(circle at 30% 30%, #e5f9ff, var(--accent-strong));
+      box-shadow: 0 0 12px rgba(56,189,248,0.9);
+    }
+    header p {
+      margin: 0;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .header-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    button {
+      font-family: inherit;
+      cursor: pointer;
+      border-radius: 999px;
+      border: 1px solid transparent;
+      padding: 6px 14px;
+      font-size: 13px;
+      background: rgba(15,23,42,0.9);
+      color: var(--text-main);
+      transition: transform var(--transition-fast), box-shadow var(--transition-fast), background var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast), opacity var(--transition-fast);
+    }
+    button.primary {
+      background: linear-gradient(to right, var(--accent), var(--accent-strong));
+      color: #0b1120;
+      font-weight: 600;
+      box-shadow: 0 10px 25px rgba(56,189,248,0.45);
+    }
+    button.primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 16px 40px rgba(56,189,248,0.6);
+    }
+    button.secondary {
+      border-color: rgba(148,163,184,0.5);
+      background: rgba(15,23,42,0.85);
+      color: var(--text-muted);
+    }
+    button.secondary:hover {
+      border-color: var(--accent);
+      color: var(--accent-strong);
+    }
+    button.text-btn {
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 12px;
+      padding: 4px 8px;
+    }
+    button.text-btn:hover {
+      color: var(--accent-strong);
+    }
+    button.small {
+      padding: 4px 10px;
+      font-size: 11px;
+    }
+    button[disabled] {
+      opacity: 0.4;
+      cursor: default;
+      box-shadow: none;
+      transform: none;
+    }
+    main {
+      padding: 18px 22px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      flex: 1;
+      overflow: hidden;
+    }
+    .view-switch {
+      display: flex;
+      gap: 8px;
+      padding: 6px;
+      border-radius: 999px;
+      background: rgba(15,23,42,0.9);
+      border: 1px solid rgba(55,65,81,0.9);
+      align-self: flex-start;
+    }
+    .chip {
+      border-radius: 999px;
+      padding: 6px 14px;
+      font-size: 12px;
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--text-muted);
+    }
+    .chip.active {
+      background: rgba(15,23,42,0.96);
+      border-color: var(--accent);
+      color: var(--accent-strong);
+      box-shadow: 0 0 0 1px rgba(15,23,42,1);
+    }
+    .hidden {
+      display: none !important;
+    }
+    /* ===== 입력 / 학습 / 테스트 공통 레이아웃 ===== */
+    #input-view,
+    #learn-view,
+    #test-view {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .panel {
+      border-radius: var(--radius-xl);
+      background: radial-gradient(circle at top left, rgba(15,23,42,1), rgba(15,23,42,0.98));
+      border: 1px solid rgba(55,65,81,0.9);
+      padding: 16px 16px 14px;
+      box-shadow: 0 16px 40px rgba(15,23,42,0.9);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      position: relative;
+      overflow: hidden;
+    }
+    .panel::before {
+      content: "";
+      position: absolute;
+      inset: -40%;
+      opacity: 0.06;
+      background:
+        radial-gradient(circle at 10% 10%, rgba(56,189,248,0.9), transparent 55%),
+        radial-gradient(circle at 80% 0%, rgba(129,140,248,0.7), transparent 50%),
+        radial-gradient(circle at 90% 90%, rgba(15,118,110,0.4), transparent 55%);
+      pointer-events: none;
+    }
+    .panel > * {
+      position: relative;
+      z-index: 1;
+    }
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+    .panel-header-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .panel-header h2 {
+      margin: 0;
+      font-size: 15px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .pill {
+      border-radius: 999px;
+      padding: 4px 10px;
+      background: rgba(15,23,42,0.9);
+      border: 1px solid rgba(148,163,184,0.5);
+      font-size: 11px;
+      color: var(--text-muted);
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .panel-body {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      font-size: 13px;
+    }
+    .field-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    label {
+      font-size: 12px;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 4px;
+    }
+    input[type="text"] {
+      width: 100%;
+      padding: 8px 10px;
+      border-radius: 11px;
+      border: 1px solid rgba(55,65,81,0.9);
+      background: rgba(15,23,42,0.96);
+      color: var(--text-main);
+      font-size: 13px;
+      outline: none;
+      transition: border-color var(--transition-fast), box-shadow var(--transition-fast), background var(--transition-fast), transform var(--transition-fast);
+    }
+    input[type="text"]::placeholder {
+      color: rgba(148,163,184,0.7);
+    }
+    input[type="text"]:focus {
+      border-color: var(--accent-strong);
+      box-shadow: 0 0 0 1px rgba(8,47,73,0.9), 0 0 0 1px rgba(56,189,248,0.4);
+      background: #020617;
+      transform: translateY(-0.5px);
+    }
+    .hint {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+    .small-note {
+      font-size: 11px;
+      color: var(--accent);
+    }
+    .actions-row {
+      display: flex;
+      justify-content: flex-end;
+      gap: 6px;
+      align-items: center;
+    }
+    .filter-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 6px;
+    }
+    .filter-buttons {
+      display: inline-flex;
+      background: rgba(15,23,42,0.9);
+      border-radius: 999px;
+      border: 1px solid rgba(55,65,81,0.9);
+      overflow: hidden;
+    }
+    .filter-btn {
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+    }
+    .filter-btn.active {
+      background: rgba(15,23,42,1);
+      color: var(--accent-strong);
+      border-bottom: 1px solid var(--accent);
+    }
+    /* 카드 리스트 */
+    .cards-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 10px;
+      padding-top: 4px;
+      max-height: 320px;
+      overflow: auto;
+      padding-right: 4px;
+    }
+    .card {
+      position: relative;
+      border-radius: var(--radius-lg);
+      border: 1px solid rgba(55,65,81,0.9);
+      background: radial-gradient(circle at top left, rgba(15,23,42,1), rgba(15,23,42,0.96));
+      padding: 10px 10px 12px;
+      cursor: pointer;
+      box-shadow: 0 10px 30px rgba(15,23,42,0.95);
+      transition: transform var(--transition-fast), box-shadow var(--transition-fast), border-color var(--transition-fast), background var(--transition-fast);
+      min-height: 90px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      overflow: hidden;
+    }
+    .card:hover {
+      transform: translateY(-3px) translateZ(0);
+      box-shadow: 0 18px 36px rgba(15,23,42,1);
+      border-color: rgba(148,163,184,0.6);
+    }
+    .card.flipped {
+      background: radial-gradient(circle at bottom right, rgba(8,47,73,1), rgba(15,23,42,1));
+      border-color: var(--accent-strong);
+      box-shadow: 0 18px 42px rgba(8,47,73,0.9);
+    }
+    .card-front-label,
+    .card-back-label {
+      font-size: 11px;
+      color: rgba(148,163,184,0.9);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+    .card-text {
+      font-size: 13px;
+      margin-top: 4px;
+      color: var(--text-main);
+      word-break: keep-all;
+    }
+    .card-bottom {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 8px;
+      font-size: 10px;
+      color: var(--text-muted);
+    }
+    .bookmark-dot {
+      position: absolute;
+      top: 7px;
+      right: 8px;
+      width: 14px;
+      height: 14px;
+      border-radius: 999px;
+      border: 2px solid rgba(248,113,113,0.8);
+      background: rgba(15,23,42,0.95);
+      box-shadow: 0 0 0 1px rgba(15,23,42,1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast), border-color var(--transition-fast);
+    }
+    .bookmark-dot::before {
+      content: "";
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: transparent;
+      transition: background var(--transition-fast), transform var(--transition-fast);
+    }
+    .bookmark-dot.active {
+      background: radial-gradient(circle at 30% 30%, #fecaca, #ef4444);
+      border-color: #fecaca;
+      box-shadow: 0 0 12px rgba(248,113,113,0.9);
+      transform: scale(1.05);
+    }
+    .bookmark-dot.active::before {
+      background: rgba(30,41,59,0.95);
+      transform: scale(0.9);
+    }
+    /* 카드 선택 체크박스 */
+    .card-select-checkbox {
+      position: absolute;
+      top: 7px;
+      left: 8px;
+      width: 14px;
+      height: 14px;
+      cursor: pointer;
+      accent-color: var(--accent-strong);
+    }
+    .empty-state {
+      font-size: 12px;
+      color: var(--text-muted);
+      text-align: center;
+      padding: 18px 12px 8px;
+    }
+    /* 선택된 카드 개수 및 수정/삭제 바 */
+    .selection-bar {
+      margin-top: 8px;
+      padding: 8px 10px;
+      border-radius: 999px;
+      background: rgba(15,23,42,0.96);
+      border: 1px solid rgba(55,65,81,0.9);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+    .selection-info {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    /* 테스트 화면 */
+    .test-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+    .test-label {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+    .test-menu {
+      border-radius: var(--radius-xl);
+      border: 1px solid rgba(55,65,81,0.9);
+      background: radial-gradient(circle at top left, rgba(15,23,42,1), rgba(15,23,42,0.98));
+      padding: 18px 16px 16px;
+      box-shadow: 0 16px 40px rgba(15,23,42,0.95);
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .test-menu-title {
+      font-size: 15px;
+      font-weight: 600;
+      margin: 0;
+    }
+    .test-type-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .test-type-card {
+      border-radius: var(--radius-lg);
+      border: 1px solid rgba(55,65,81,0.9);
+      padding: 12px 12px 10px;
+      background: rgba(15,23,42,0.96);
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      transition: transform var(--transition-fast), box-shadow var(--transition-fast), border-color var(--transition-fast), background var(--transition-fast);
+    }
+    .test-type-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 16px 32px rgba(15,23,42,0.95);
+      border-color: rgba(148,163,184,0.8);
+      background: radial-gradient(circle at top right, rgba(15,23,42,1), rgba(15,23,42,0.96));
+    }
+    .test-type-title {
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .test-type-desc {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+    .test-extra-note {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+    .test-area {
+      border-radius: var(--radius-xl);
+      border: 1px solid rgba(55,65,81,0.9);
+      background: radial-gradient(circle at bottom right, rgba(15,23,42,1), rgba(15,23,42,0.98));
+      padding: 18px 16px;
+      box-shadow: 0 16px 40px rgba(15,23,42,0.95);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .question-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .question-main {
+      margin-top: 4px;
+      border-radius: 18px;
+      padding: 16px 14px;
+      border: 1px solid rgba(55,65,81,0.9);
+      background: radial-gradient(circle at top, rgba(15,23,42,1), rgba(15,23,42,0.98));
+      text-align: center;
+      font-size: 18px;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      min-height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .options-grid {
+      margin-top: 10px;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+    .option-btn {
+      border-radius: var(--radius-lg);
+      padding: 10px 10px;
+      border: 1px solid rgba(55,65,81,0.9);
+      background: rgba(15,23,42,0.96);
+      font-size: 13px;
+      text-align: left;
+    }
+    .option-btn:hover {
+      border-color: var(--accent-strong);
+      box-shadow: 0 12px 26px rgba(15,23,42,1);
+      transform: translateY(-2px);
+    }
+    .input-test-row {
+      margin-top: 10px;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .input-test-row input[type="text"] {
+      flex: 1;
+    }
+    .test-footer {
+      margin-top: 4px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      color: var(--text-muted);
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    /* 시간제한 바 스타일 */
+    .timer-bar {
+      height: 4px;
+      background-color: var(--timeout-bar-color);
+      border-radius: 2px;
+      margin-bottom: 8px;
+      transition: width linear;
+    }
+    footer {
+      border-top: 1px solid rgba(55,65,81,0.9);
+      padding: 8px 18px 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      color: var(--text-muted);
+      background: radial-gradient(circle at bottom, rgba(15,23,42,0.98), rgba(15,23,42,1));
+    }
+    .footer-right {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .badge {
+      border-radius: 999px;
+      padding: 3px 8px;
+      font-size: 10px;
+      background: rgba(15,23,42,0.95);
+      border: 1px solid rgba(55,65,81,0.9);
+      color: var(--text-muted);
+    }
+    .badge.accent {
+      border-color: var(--accent-strong);
+      color: var(--accent-strong);
+      background: rgba(8,47,73,0.4);
+    }
+    /* 모달 공통 */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15,23,42,0.76);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 50;
+    }
+    .modal {
+      width: min(360px, 90%);
+      border-radius: 18px;
+      background: radial-gradient(circle at top, rgba(15,23,42,1), rgba(15,23,42,0.98));
+      border: 1px solid rgba(148,163,184,0.4);
+      box-shadow: 0 24px 60px rgba(15,23,42,0.95);
+      padding: 16px 16px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .modal-title {
+      font-size: 14px;
+      font-weight: 600;
+      margin: 0;
+    }
+    .modal-body {
+      font-size: 12px;
+      color: var(--text-muted);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .modal-actions {
+      margin-top: 6px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 6px;
+    }
+    /* 암기율 영역 */
+    .recall-area {
+      margin-bottom: 8px;
+      font-size: 12px;
+    }
+    .recall-rate {
+      font-weight: 700;
+      color: #2563eb;
+    }
+    @media (max-width: 860px) {
+      .cards-container {
+        max-height: 260px;
+      }
+    }
+    @media (max-width: 640px) {
+      header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+      }
+      .header-actions {
+        align-self: stretch;
+        justify-content: space-between;
+      }
+      .test-type-grid {
+        grid-template-columns: minmax(0, 1fr);
+      }
+      .question-main {
+        font-size: 16px;
+      }
+      .options-grid {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="title-block">
+      <h1><span class="logo-dot"></span>플래시카드 학습 & 테스트</h1>
+    </div>
+    <div class="header-actions">
+      <button id="btnReset" class="secondary small">카드 초기화</button>
+      <button id="btnGoTest" class="primary small">테스트</button>
+    </div>
+  </header>
+  <main>
+    <!-- 입력 / 학습 / 테스트 뷰 전환 -->
+    <div class="view-switch">
+      <button id="chipInput" class="chip">입력 화면</button>
+      <button id="chipLearn" class="chip active">학습 화면</button>
+      <button id="chipTest" class="chip">테스트 화면</button>
+    </div>
+    <!-- =============== 입력 화면 =============== -->
+    <section id="input-view" class="hidden">
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-header-left">
+            <h2>암기 내용 입력하기</h2>
+            <span class="pill">사용자 입력 &amp; 배열 저장</span>
+          </div>
+        </div>
+        <div class="panel-body">
+          <div class="field-group">
+            <label>
+              앞면 (보이는 부분)
+              <span class="small-note">Enter를 누르면 바로 카드가 추가된다.</span>
+            </label>
+            <input id="inputFront" type="text" placeholder="예: HTML">
+          </div>
+          <div class="field-group">
+            <label>뒷면 (암기할 내용)</label>
+            <input id="inputBack" type="text" placeholder="예: 웹 페이지 구조를 담당하는 마크업 언어">
+          </div>
+          <div id="inputStatus" class="hint" style="color: var(--accent);"></div>
+          <div class="actions-row">
+            <button id="btnAddCard" class="primary small">카드 추가</button>
+          </div>
+        </div>
+      </div>
+    </section>
+    <!-- =============== 학습 화면 =============== -->
+    <section id="learn-view">
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-header-left">
+            <h2>학습하기</h2>
+            <span class="pill">클릭 후 20초가 지나면 자동 복귀된다.</span>
+          </div>
+          <button id="btnToggleSelectMode" class="secondary small">선택 모드</button>
+        </div>
+        <div class="panel-body">
+          <div class="filter-row">
+            <div class="filter-buttons">
+              <button id="btnFilterAll" class="filter-btn active">전체 카드</button>
+              <button id="btnFilterBookmark" class="filter-btn">북마크만</button>
+            </div>
+          </div>
+          <div id="cardsContainer" class="cards-container"></div>
+          <div id="emptyState" class="empty-state">
+            아직 생성된 플래시카드가 없다. 입력 화면에서 개념을 입력하고 <strong>카드 추가</strong> 버튼을 눌러서 학습을 시작한다.
+          </div>
+          <div id="selectionBar" class="selection-bar hidden">
+            <div class="selection-info">
+              <span id="selectionCountText">선택된 카드 0개</span>
+            </div>
+            <div>
+              <button id="btnEditSelected" class="secondary small" disabled>선택 카드 수정하기</button>
+              <button id="btnDeleteSelected" class="secondary small" disabled>선택 카드 삭제하기</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <!-- =============== 테스트 화면 =============== -->
+    <section id="test-view" class="hidden">
+      <div class="test-top">
+        <div class="test-label">사용자가 입력한 개념으로 시험을 진행한다.</div>
+        <div>
+          <button id="btnBackToLearn" class="text-btn">← 학습 화면으로 돌아가기</button>
+        </div>
+      </div>
+      <!-- 테스트 유형 선택 -->
+      <div id="testMenu" class="test-menu">
+        <!-- 암기율 표시 영역 -->
+        <div id="recallRateArea" class="recall-area">
+          최근 시험 기준 암기율:
+          <span id="recallRateDisplay" class="recall-rate">-</span>
+          (전체 <span id="recallTotalCards">0</span>개 중 틀린 문제
+          <span id="recallWrongCount">0</span>개)
+        </div>
+        <h3 class="test-menu-title">테스트 유형을 선택한다.</h3>
+        <div class="test-type-grid">
+          <div id="cardTypeMC" class="test-type-card">
+            <div class="test-type-title">사지선다 테스트</div>
+            <div class="test-type-desc">
+              개념 하나가 무작위로 제시된다.<br>
+              아래 네 개 보기 중에서 짝이 되는 알맞는 개념을 고른다.
+            </div>
+          </div>
+          <div id="cardTypeInput" class="test-type-card">
+            <div class="test-type-title">직접 입력 테스트</div>
+            <div class="test-type-desc">
+              무작위로 선택된 개념을 보고, 직접 정답을 입력한다.<br>
+              정답을 맞추면 다음 문제로 바로 이동한다.
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- 실제 문제 영역 -->
+      <div id="testArea" class="test-area hidden">
+        <div id="timerBar" class="timer-bar"></div>
+        <div class="question-header">
+          <span id="testTypeLabel"></span>
+          <span id="questionCounter"></span>
+        </div>
+        <div id="questionText" class="question-main">문제가 여기에 표시된다</div>
+        <!-- 사지선다 옵션 -->
+        <div id="mcOptions" class="options-grid hidden"></div>
+        <!-- 직접 입력 옵션 -->
+        <div id="inputTestBox" class="input-test-row hidden">
+          <input id="inputAnswer" type="text" placeholder="정답을 입력한다">
+          <button id="btnSubmitAnswer" class="primary small">정답 제출</button>
+        </div>
+        <div class="test-footer">
+          <span id="testGuideText"></span>
+          <div style="display:flex; gap:6px; margin-left:auto;">
+            <button id="btnSkipQuestion" class="secondary small">모르겠다 (스킵)</button>
+            <button id="btnEndTestEarly" class="text-btn small">시험 종료</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+  <footer>
+    <span>틀린 문제 기록은 초기화 전까지 유지되며, 아래 버튼으로 다시 복습할 수 있다.</span>
+    <div class="footer-right">
+      <span id="wrongCountBadge" class="badge hidden">틀린 문제 0개</span>
+      <button id="btnReviewWrong" class="secondary small" disabled>틀렸던 문제들 복습하기</button>
+    </div>
+  </footer>
+  <!-- 시험 종료 모달 -->
+  <div id="modalOverlay" class="modal-overlay hidden">
+    <div class="modal">
+      <h4 class="modal-title">시험이 종료되었다.</h4>
+      <div class="modal-body">
+        틀린 문제들만 다시 시험을 치겠는가?<br>
+        아니오를 누르면 학습 화면으로 돌아간다.
+      </div>
+      <div class="modal-actions">
+        <button id="btnModalNo" class="secondary small">아니오</button>
+        <button id="btnModalYes" class="primary small">예</button>
+      </div>
+    </div>
+  </div>
+  <!-- 카드 수정 모달 -->
+  <div id="editModalOverlay" class="modal-overlay hidden">
+    <div class="modal">
+      <h4 class="modal-title">카드 수정</h4>
+      <div class="modal-body">
+        <div class="field-group">
+          <label>앞면 (보이는 부분)</label>
+          <input id="editFrontInput" type="text">
+        </div>
+        <div class="field-group">
+          <label>뒷면 (암기할 내용)</label>
+          <input id="editBackInput" type="text">
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button id="btnEditCancel" class="secondary small">취소</button>
+        <button id="btnEditSave" class="primary small">저장</button>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+  // ============================================================
+  // 1. 데이터 관련 전역 변수 섹션
+  // ============================================================
+  var cards = []; // { id, front, back, bookmarked }
+  var nextCardId = 1;
+  var currentFilter = "all"; // "all" 또는 "bookmark"
+  var flipTimers = {};
+  // 테스트 상태
+  var currentTestType = null; // "mc" 또는 "input"
+  var currentQuestionList = []; // { cardId, promptSide }
+  var currentQuestionIndex = 0;
+  var currentCorrectAnswer = "";
+  var currentWrongQuestions = [];
+  var lastWrongQuestions = [];
+  var lastTestType = null;
+  // 시간 제한 / 스킵 기능
+  var testTimer = null;
+  var TIME_LIMIT_MS = 10000;
+  // 카드 선택 모드
+  var selectionMode = false;
+  var selectedCardIds = [];
+  // 수정 모달 타겟 카드
+  var editTargetCardId = null;
+  // ============================================================
+  // 2. DOM 요소 선택 섹션
+  // ============================================================
+  // 화면 섹션
+  var inputView = document.getElementById("input-view");
+  var learnView = document.getElementById("learn-view");
+  var testView = document.getElementById("test-view");
+  // 뷰 전환 칩
+  var chipInput = document.getElementById("chipInput");
+  var chipLearn = document.getElementById("chipLearn");
+  var chipTest = document.getElementById("chipTest");
+  // 입력 관련
+  var inputFront = document.getElementById("inputFront");
+  var inputBack = document.getElementById("inputBack");
+  var btnAddCard = document.getElementById("btnAddCard");
+  var inputStatus = document.getElementById("inputStatus");
+  // 카드 영역
+  var cardsContainer = document.getElementById("cardsContainer");
+  var emptyState = document.getElementById("emptyState");
+  // 필터 버튼
+  var btnFilterAll = document.getElementById("btnFilterAll");
+  var btnFilterBookmark = document.getElementById("btnFilterBookmark");
+  // 상단 전환 버튼
+  var btnGoTest = document.getElementById("btnGoTest");
+  var btnBackToLearn = document.getElementById("btnBackToLearn");
+  // 초기화 버튼
+  var btnReset = document.getElementById("btnReset");
+  // 선택 모드 관련
+  var btnToggleSelectMode = document.getElementById("btnToggleSelectMode");
+  var selectionBar = document.getElementById("selectionBar");
+  var selectionCountText = document.getElementById("selectionCountText");
+  var btnEditSelected = document.getElementById("btnEditSelected");
+  var btnDeleteSelected = document.getElementById("btnDeleteSelected");
+  // 테스트 메뉴 / 영역
+  var testMenu = document.getElementById("testMenu");
+  var testArea = document.getElementById("testArea");
+  var cardTypeMC = document.getElementById("cardTypeMC");
+  var cardTypeInput = document.getElementById("cardTypeInput");
+  // 시간 제한 바
+  var timerBar = document.getElementById("timerBar");
+  // 테스트 내부
+  var testTypeLabel = document.getElementById("testTypeLabel");
+  var questionCounter = document.getElementById("questionCounter");
+  var questionText = document.getElementById("questionText");
+  var mcOptions = document.getElementById("mcOptions");
+  var inputTestBox = document.getElementById("inputTestBox");
+  var inputAnswer = document.getElementById("inputAnswer");
+  var btnSubmitAnswer = document.getElementById("btnSubmitAnswer");
+  var testGuideText = document.getElementById("testGuideText");
+  var btnEndTestEarly = document.getElementById("btnEndTestEarly");
+  var btnSkipQuestion = document.getElementById("btnSkipQuestion");
+  // 푸터
+  var btnReviewWrong = document.getElementById("btnReviewWrong");
+  var wrongCountBadge = document.getElementById("wrongCountBadge");
+  // 종료 모달
+  var modalOverlay = document.getElementById("modalOverlay");
+  var btnModalYes = document.getElementById("btnModalYes");
+  var btnModalNo = document.getElementById("btnModalNo");
+  // 카드 수정 모달
+  var editModalOverlay = document.getElementById("editModalOverlay");
+  var editFrontInput = document.getElementById("editFrontInput");
+  var editBackInput = document.getElementById("editBackInput");
+  var btnEditCancel = document.getElementById("btnEditCancel");
+  var btnEditSave = document.getElementById("btnEditSave");
+  // 암기율 영역
+  var recallRateArea = document.getElementById("recallRateArea");
+  var recallRateDisplay = document.getElementById("recallRateDisplay");
+  var recallTotalCards = document.getElementById("recallTotalCards");
+  var recallWrongCount = document.getElementById("recallWrongCount");
+  // 초기에는 암기율 영역을 숨긴다.
+  if (recallRateArea) {
+    recallRateArea.classList.add("hidden");
+  }
+  // ============================================================
+  // 3. 유틸리티 함수
+  // ============================================================
+  function shuffleArray(arr) {
+    for (var i = arr.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var temp = arr[i];
+      arr[i] = arr[j];
+      arr[j] = temp;
+    }
+  }
+  function findCardById(id) {
+    for (var i = 0; i < cards.length; i++) {
+      if (cards[i].id === id) return cards[i];
+    }
+    return null;
+  }
+  function updateWrongBadge() {
+    var count = lastWrongQuestions.length;
+    if (count > 0) {
+      wrongCountBadge.textContent = "틀린 문제 " + count + "개";
+      wrongCountBadge.classList.remove("hidden");
+      btnReviewWrong.disabled = false;
+    } else {
+      wrongCountBadge.classList.add("hidden");
+      btnReviewWrong.disabled = true;
+    }
+  }
+  // ============================================================
+  // 4. 입력 / 카드 추가
+  // ============================================================
+  function addCard() {
+    var frontText = inputFront.value.trim();
+    var backText = inputBack.value.trim();
+    if (!frontText || !backText) {
+      alert("앞면과 뒷면을 모두 입력해야 한다.");
+      return;
+    }
+    var newCard = {
+      id: nextCardId,
+      front: frontText,
+      back: backText,
+      bookmarked: false
+    };
+    nextCardId++;
+    cards.push(newCard);
+    inputFront.value = "";
+    inputBack.value = "";
+    inputStatus.textContent = "새 카드가 추가되었다. 현재 카드 개수: " + cards.length + "개";
+    renderCards();
+  }
+  // ============================================================
+  // 5. 카드 렌더링 및 선택 모드
+  // ============================================================
+  function updateSelectionUI() {
+    if (selectionMode) {
+      btnToggleSelectMode.textContent = "선택 해제";
+    } else {
+      btnToggleSelectMode.textContent = "선택 모드";
+    }
+    var count = selectedCardIds.length;
+    selectionCountText.textContent = "선택된 카드 " + count + "개";
+    if (selectionMode && count > 0) {
+      selectionBar.classList.remove("hidden");
+    } else {
+      selectionBar.classList.add("hidden");
+    }
+    btnEditSelected.disabled = !(selectionMode && count === 1);
+    btnDeleteSelected.disabled = !(selectionMode && count >= 1);
+  }
+  function toggleCardSelection(id, isSelected) {
+    var index = selectedCardIds.indexOf(id);
+    if (isSelected) {
+      if (index === -1) selectedCardIds.push(id);
+    } else {
+      if (index !== -1) selectedCardIds.splice(index, 1);
+    }
+    updateSelectionUI();
+  }
+  function createCardElement(card) {
+    var cardDiv = document.createElement("div");
+    cardDiv.className = "card";
+    cardDiv.setAttribute("data-id", card.id);
+    // 선택 체크박스
+    var selectCheckbox = null;
+    if (selectionMode) {
+      selectCheckbox = document.createElement("input");
+      selectCheckbox.type = "checkbox";
+      selectCheckbox.className = "card-select-checkbox";
+      if (selectedCardIds.indexOf(card.id) !== -1) {
+        selectCheckbox.checked = true;
+      }
+      selectCheckbox.addEventListener("click", function (event) {
+        event.stopPropagation();
+        toggleCardSelection(card.id, selectCheckbox.checked);
+      });
+      cardDiv.appendChild(selectCheckbox);
+    }
+    var label = document.createElement("div");
+    label.className = "card-front-label";
+    label.textContent = "앞면";
+    var text = document.createElement("div");
+    text.className = "card-text";
+    text.textContent = card.front;
+    var bottom = document.createElement("div");
+    bottom.className = "card-bottom";
+    bottom.innerHTML = "<span>카드 #" + card.id + "</span><span>클릭해서 뒤집기</span>";
+    var bookmarkDot = document.createElement("div");
+    bookmarkDot.className = "bookmark-dot";
+    if (card.bookmarked) bookmarkDot.classList.add("active");
+    bookmarkDot.addEventListener("click", function (event) {
+      event.stopPropagation();
+      card.bookmarked = !card.bookmarked;
+      if (card.bookmarked) {
+        bookmarkDot.classList.add("active");
+      } else {
+        bookmarkDot.classList.remove("active");
+      }
+      if (currentFilter === "bookmark") {
+        renderCards();
+      }
+    });
+    cardDiv.addEventListener("click", function () {
+      if (selectionMode) {
+        if (selectCheckbox) {
+          selectCheckbox.checked = !selectCheckbox.checked;
+          toggleCardSelection(card.id, selectCheckbox.checked);
+        }
+        return;
+      }
+      var isFlipped = cardDiv.classList.toggle("flipped");
+      if (isFlipped) {
+        label.textContent = "뒷면";
+        text.textContent = card.back;
+        if (flipTimers[card.id]) clearTimeout(flipTimers[card.id]);
+        flipTimers[card.id] = setTimeout(function () {
+          if (cardDiv.classList.contains("flipped")) {
+            cardDiv.classList.remove("flipped");
+            label.textContent = "앞면";
+            text.textContent = card.front;
+          }
+        }, 20000);
+      } else {
+        label.textContent = "앞면";
+        text.textContent = card.front;
+        if (flipTimers[card.id]) {
+          clearTimeout(flipTimers[card.id]);
+          flipTimers[card.id] = null;
+        }
+      }
+    });
+    cardDiv.appendChild(bookmarkDot);
+    cardDiv.appendChild(label);
+    cardDiv.appendChild(text);
+    cardDiv.appendChild(bottom);
+    return cardDiv;
+  }
+  function renderCards() {
+    cardsContainer.innerHTML = "";
+    var visibleCards = [];
+    for (var i = 0; i < cards.length; i++) {
+      if (currentFilter === "all") {
+        visibleCards.push(cards[i]);
+      } else if (cards[i].bookmarked) {
+        visibleCards.push(cards[i]);
+      }
+    }
+    if (visibleCards.length === 0) {
+      emptyState.style.display = "block";
+    } else {
+      emptyState.style.display = "none";
+      var cleanedSelected = [];
+      for (var s = 0; s < selectedCardIds.length; s++) {
+        if (findCardById(selectedCardIds[s])) cleanedSelected.push(selectedCardIds[s]);
+      }
+      selectedCardIds = cleanedSelected;
+      updateSelectionUI();
+      for (var j = 0; j < visibleCards.length; j++) {
+        var cardElement = createCardElement(visibleCards[j]);
+        cardsContainer.appendChild(cardElement);
+      }
+    }
+  }
+  // ============================================================
+  // 6. 필터
+  // ============================================================
+  function handleFilterAll() {
+    currentFilter = "all";
+    btnFilterAll.classList.add("active");
+    btnFilterBookmark.classList.remove("active");
+    renderCards();
+  }
+  function handleFilterBookmark() {
+    currentFilter = "bookmark";
+    btnFilterAll.classList.remove("active");
+    btnFilterBookmark.classList.add("active");
+    renderCards();
+  }
+  // ============================================================
+  // 7. 화면 전환
+  // ============================================================
+  function clearTestTimer() {
+    if (testTimer) {
+      clearTimeout(testTimer);
+      testTimer = null;
+    }
+    if (timerBar) {
+      timerBar.style.transitionDuration = "0ms";
+      timerBar.style.width = "100%";
+    }
+  }
+  function showInputView() {
+    clearTestTimer();
+    inputView.classList.remove("hidden");
+    learnView.classList.add("hidden");
+    testView.classList.add("hidden");
+    chipInput.classList.add("active");
+    chipLearn.classList.remove("active");
+    chipTest.classList.remove("active");
+    inputFront.focus();
+  }
+  function showLearnView() {
+    clearTestTimer();
+    inputView.classList.add("hidden");
+    learnView.classList.remove("hidden");
+    testView.classList.add("hidden");
+    chipInput.classList.remove("active");
+    chipLearn.classList.add("active");
+    chipTest.classList.remove("active");
+  }
+  function showTestView() {
+    inputView.classList.add("hidden");
+    learnView.classList.add("hidden");
+    testView.classList.remove("hidden");
+    chipInput.classList.remove("active");
+    chipLearn.classList.remove("active");
+    chipTest.classList.add("active");
+  }
+  // ============================================================
+  // 8-1. 암기율 계산
+  // ============================================================
+  function updateRecallRateUI(totalCount, wrongCount) {
+    if (!recallRateDisplay) return;
+    recallTotalCards.textContent = totalCount.toString();
+    recallWrongCount.textContent = wrongCount.toString();
+    if (totalCount === 0) {
+      recallRateDisplay.textContent = "-";
+      recallRateDisplay.style.color = "#9ca3af";
+    } else {
+      var correctCount = totalCount - wrongCount;
+      var rate = Math.round((correctCount / totalCount) * 100);
+      recallRateDisplay.textContent = rate + "%";
+      if (rate >= 80) {
+        recallRateDisplay.style.color = "#22c55e";
+      } else if (rate >= 50) {
+        recallRateDisplay.style.color = "#fbbf24";
+      } else {
+        recallRateDisplay.style.color = "#f97373";
+      }
+    }
+  }
+  function displayRecallRate() {
+    var totalCards = cards.length;
+    var wrongCount = lastWrongQuestions.length;
+    updateRecallRateUI(totalCards, wrongCount);
+  }
+  // ============================================================
+  // 8. 테스트 공통 로직
+  // ============================================================
+  function buildQuestionListFromAll() {
+    var list = [];
+    for (var i = 0; i < cards.length; i++) {
+      var side = Math.random() < 0.5 ? "front" : "back";
+      list.push({ cardId: cards[i].id, promptSide: side });
+    }
+    shuffleArray(list);
+    return list;
+  }
+  function buildQuestionListFromWrong(wrongList) {
+    var list = [];
+    for (var i = 0; i < wrongList.length; i++) {
+      list.push({
+        cardId: wrongList[i].cardId,
+        promptSide: wrongList[i].promptSide
+      });
+    }
+    shuffleArray(list);
+    return list;
+  }
+  function startTestTimer() {
+    clearTestTimer();
+    if (!timerBar) return;
+    timerBar.style.width = "100%";
+    timerBar.style.transitionDuration = TIME_LIMIT_MS + "ms";
+    setTimeout(function () {
+      timerBar.style.width = "0%";
+    }, 10);
+    testTimer = setTimeout(function () {
+      handleTimeout();
+    }, TIME_LIMIT_MS);
+  }
+  function handleTimeout() {
+    clearTestTimer();
+    var qInfo = currentQuestionList[currentQuestionIndex];
+    var card = findCardById(qInfo.cardId);
+    if (!card) {
+      currentQuestionIndex++;
+      renderCurrentQuestion();
+      return;
+    }
+    var answerText = qInfo.promptSide === "front" ? card.back : card.front;
+    alert("시간 초과! 틀린 것으로 간주하고 다음 문제로 이동한다. 정답은: " + answerText);
+    currentWrongQuestions.push({
+      cardId: qInfo.cardId,
+      promptSide: qInfo.promptSide
+    });
+    currentQuestionIndex++;
+    renderCurrentQuestion();
+  }
+  function startTest(testType, questionList) {
+    if (cards.length === 0) {
+      alert("먼저 플래시카드를 생성해야 한다.");
+      return;
+    }
+    if (!questionList || questionList.length === 0) {
+      alert("출제할 문제가 없다.");
+      return;
+    }
+    currentTestType = testType;
+    lastTestType = testType;
+    currentQuestionList = questionList;
+    currentQuestionIndex = 0;
+    currentWrongQuestions = [];
+    showTestView();
+    testMenu.classList.add("hidden");
+    testArea.classList.remove("hidden");
+    if (recallRateArea) {
+      recallRateArea.classList.add("hidden");
+    }
+    if (testType === "mc") {
+      testTypeLabel.textContent = "시험 유형: 사지선다";
+      testGuideText.textContent =
+        "보기 네 개 중에서 정답이라고 생각하는 문항을 한 번 클릭한다. (제한 시간 " +
+        TIME_LIMIT_MS / 1000 +
+        "초)";
+    } else {
+      testTypeLabel.textContent = "시험 유형: 직접 입력";
+      testGuideText.textContent =
+        "정답을 입력하고 '정답 제출' 버튼을 누른다. (제한 시간 " +
+        TIME_LIMIT_MS / 1000 +
+        "초)";
+    }
+    renderCurrentQuestion();
+  }
+  function renderCurrentQuestion() {
+    clearTestTimer();
+    if (currentQuestionIndex >= currentQuestionList.length) {
+      endTest();
+      return;
+    }
+    var qInfo = currentQuestionList[currentQuestionIndex];
+    var card = findCardById(qInfo.cardId);
+    if (!card) {
+      currentQuestionIndex++;
+      renderCurrentQuestion();
+      return;
+    }
+    var promptText;
+    var answerText;
+    if (qInfo.promptSide === "front") {
+      promptText = card.front;
+      answerText = card.back;
+    } else {
+      promptText = card.back;
+      answerText = card.front;
+    }
+    currentCorrectAnswer = answerText;
+    questionCounter.textContent =
+      currentQuestionIndex + 1 + " / " + currentQuestionList.length;
+    questionText.textContent = promptText;
+    if (currentTestType === "mc") {
+      mcOptions.classList.remove("hidden");
+      inputTestBox.classList.add("hidden");
+      renderMCOptions(answerText, card.id);
+    } else {
+      mcOptions.classList.add("hidden");
+      inputTestBox.classList.remove("hidden");
+      inputAnswer.value = "";
+      inputAnswer.focus();
+    }
+    startTestTimer();
+  }
+  // ============================================================
+  // 9. 사지선다
+  // ============================================================
+  function renderMCOptions(correctAnswer, correctCardId) {
+    mcOptions.innerHTML = "";
+    var options = [correctAnswer];
+    var candidateTexts = [];
+    for (var i = 0; i < cards.length; i++) {
+      var c = cards[i];
+      if (c.id !== correctCardId) {
+        candidateTexts.push(c.front);
+        candidateTexts.push(c.back);
+      }
+    }
+    shuffleArray(candidateTexts);
+    for (var j = 0; j < candidateTexts.length && options.length < 4; j++) {
+      if (candidateTexts[j] && candidateTexts[j] !== correctAnswer) {
+        options.push(candidateTexts[j]);
+      }
+    }
+    while (options.length < 4) {
+      options.push(correctAnswer);
+    }
+    shuffleArray(options);
+    for (var k = 0; k < options.length; k++) {
+      (function () {
+        var optText = options[k];
+        var btn = document.createElement("button");
+        btn.className = "option-btn";
+        btn.textContent = optText;
+        btn.addEventListener("click", function () {
+          handleMCAnswer(optText);
+        });
+        mcOptions.appendChild(btn);
+      })();
+    }
+  }
+  function handleMCAnswer(selectedText) {
+    clearTestTimer();
+    var qInfo = currentQuestionList[currentQuestionIndex];
+    if (selectedText === currentCorrectAnswer) {
+      currentQuestionIndex++;
+      renderCurrentQuestion();
+    } else {
+      alert("틀렸다. Enter 키를 누르면 다음 문제로 이동한다.");
+      currentWrongQuestions.push({
+        cardId: qInfo.cardId,
+        promptSide: qInfo.promptSide
+      });
+      currentQuestionIndex++;
+      renderCurrentQuestion();
+    }
+  }
+  // ============================================================
+  // 10. 직접 입력 테스트
+  // ============================================================
+  function handleInputSubmit() {
+    clearTestTimer();
+    var userAnswer = inputAnswer.value.trim();
+    var qInfo = currentQuestionList[currentQuestionIndex];
+    if (userAnswer === "") {
+      alert("정답을 입력해야 한다.");
+      startTestTimer();
+      return;
+    }
+    if (userAnswer === currentCorrectAnswer) {
+      currentQuestionIndex++;
+      renderCurrentQuestion();
+    } else {
+      alert("틀렸다. 정답은: " + currentCorrectAnswer);
+      currentWrongQuestions.push({
+        cardId: qInfo.cardId,
+        promptSide: qInfo.promptSide
+      });
+      currentQuestionIndex++;
+      renderCurrentQuestion();
+    }
+  }
+  function handleSkipQuestion() {
+    clearTestTimer();
+    var qInfo = currentQuestionList[currentQuestionIndex];
+    var card = findCardById(qInfo.cardId);
+    if (!card) {
+      currentQuestionIndex++;
+      renderCurrentQuestion();
+      return;
+    }
+    var answerText = qInfo.promptSide === "front" ? card.back : card.front;
+    alert(
+      "문제를 스킵했다. 틀린 것으로 간주하고 다음 문제로 이동한다. 정답은: " +
+        answerText
+    );
+    currentWrongQuestions.push({
+      cardId: qInfo.cardId,
+      promptSide: qInfo.promptSide
+    });
+    currentQuestionIndex++;
+    renderCurrentQuestion();
+  }
+  // ============================================================
+  // 11. 시험 종료 / 복습
+  // ============================================================
+  function endTest() {
+    clearTestTimer();
+    lastWrongQuestions = currentWrongQuestions.slice();
+    updateWrongBadge();
+    testArea.classList.add("hidden");
+    testMenu.classList.remove("hidden");
+    if (recallRateArea) {
+      recallRateArea.classList.remove("hidden");
+      displayRecallRate();
+    }
+    modalOverlay.classList.remove("hidden");
+  }
+  function handleModalYes() {
+    modalOverlay.classList.add("hidden");
+    if (lastWrongQuestions.length === 0) {
+      alert("틀린 문제가 없어서 복습할 문제가 없다.");
+      showLearnView();
+      return;
+    }
+    var questionList = buildQuestionListFromWrong(lastWrongQuestions);
+    startTest(lastTestType || "mc", questionList);
+  }
+  function handleModalNo() {
+    modalOverlay.classList.add("hidden");
+    showLearnView();
+  }
+  function handleReviewWrongButton() {
+    if (lastWrongQuestions.length === 0) {
+      alert("아직 틀린 문제가 없다.");
+      return;
+    }
+    var questionList = buildQuestionListFromWrong(lastWrongQuestions);
+    startTest(lastTestType || "mc", questionList);
+  }
+  function handleEndTestEarly() {
+    var ok = confirm("시험을 지금 종료하겠는가?");
+    if (ok) {
+      endTest();
+    }
+  }
+  // ============================================================
+  // 12. 카드 수정 / 삭제
+  // ============================================================
+  function toggleSelectionMode() {
+    selectionMode = !selectionMode;
+    if (!selectionMode) {
+      selectedCardIds = [];
+    }
+    updateSelectionUI();
+    renderCards();
+  }
+  function openEditModal(cardId) {
+    var card = findCardById(cardId);
+    if (!card) return;
+    editTargetCardId = cardId;
+    editFrontInput.value = card.front;
+    editBackInput.value = card.back;
+    editModalOverlay.classList.remove("hidden");
+    editFrontInput.focus();
+  }
+  function closeEditModal() {
+    editTargetCardId = null;
+    editModalOverlay.classList.add("hidden");
+  }
+  function deleteSelectedCards() {
+    if (selectedCardIds.length === 0) return;
+    var ok = confirm("선택한 카드를 삭제하겠는가?");
+    if (!ok) return;
+    for (var i = 0; i < selectedCardIds.length; i++) {
+      var id = selectedCardIds[i];
+      if (flipTimers[id]) {
+        clearTimeout(flipTimers[id]);
+        flipTimers[id] = null;
+      }
+    }
+    var remaining = [];
+    for (var j = 0; j < cards.length; j++) {
+      if (selectedCardIds.indexOf(cards[j].id) === -1) {
+        remaining.push(cards[j]);
+      }
+    }
+    cards = remaining;
+    selectionMode = false;
+    selectedCardIds = [];
+    updateSelectionUI();
+    renderCards();
+  }
+  // ============================================================
+  // 13. 전체 초기화
+  // ============================================================
+  function resetAll() {
+    var ok = confirm("모든 플래시카드와 틀린 문제 기록을 초기화하겠는가?");
+    if (!ok) return;
+    cards = [];
+    nextCardId = 1;
+    flipTimers = {};
+    currentFilter = "all";
+    currentTestType = null;
+    currentQuestionList = [];
+    currentQuestionIndex = 0;
+    currentCorrectAnswer = "";
+    currentWrongQuestions = [];
+    lastWrongQuestions = [];
+    lastTestType = null;
+    selectionMode = false;
+    selectedCardIds = [];
+    editTargetCardId = null;
+    clearTestTimer();
+    inputFront.disabled = false;
+    inputBack.disabled = false;
+    btnAddCard.disabled = false;
+    inputFront.value = "";
+    inputBack.value = "";
+    inputStatus.textContent = "";
+    btnFilterAll.classList.add("active");
+    btnFilterBookmark.classList.remove("active");
+    renderCards();
+    updateWrongBadge();
+    showLearnView();
+    if (recallRateArea) {
+      recallRateArea.classList.add("hidden");
+      updateRecallRateUI(0, 0);
+    }
+  }
+  // ============================================================
+  // 14. 이벤트 리스너 등록
+  // ============================================================
+  btnAddCard.addEventListener("click", function () {
+    addCard();
+    inputFront.focus();
+  });
+  // 앞면에서 Enter -> 뒷면으로 포커스
+  inputFront.addEventListener("keydown", function (event) {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      inputBack.focus();
+    }
+  });
+  // 뒷면에서 Enter -> 카드 추가
+  inputBack.addEventListener("keydown", function (event) {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      addCard();
+      inputFront.focus();
+    }
+  });
+  btnFilterAll.addEventListener("click", handleFilterAll);
+  btnFilterBookmark.addEventListener("click", handleFilterBookmark);
+  chipInput.addEventListener("click", showInputView);
+  chipLearn.addEventListener("click", showLearnView);
+  chipTest.addEventListener("click", showTestView);
+  btnGoTest.addEventListener("click", showTestView);
+  btnBackToLearn.addEventListener("click", showLearnView);
+  btnReset.addEventListener("click", resetAll);
+  btnToggleSelectMode.addEventListener("click", toggleSelectionMode);
+  btnEditSelected.addEventListener("click", function () {
+    if (selectedCardIds.length === 1) {
+      openEditModal(selectedCardIds[0]);
+    }
+  });
+  btnDeleteSelected.addEventListener("click", deleteSelectedCards);
+  cardTypeMC.addEventListener("click", function () {
+    var questionList = buildQuestionListFromAll();
+    startTest("mc", questionList);
+  });
+  cardTypeInput.addEventListener("click", function () {
+    var questionList = buildQuestionListFromAll();
+    startTest("input", questionList);
+  });
+  btnSubmitAnswer.addEventListener("click", handleInputSubmit);
+  inputAnswer.addEventListener("keydown", function (event) {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      handleInputSubmit();
+    }
+  });
+  btnEndTestEarly.addEventListener("click", handleEndTestEarly);
+  btnSkipQuestion.addEventListener("click", handleSkipQuestion);
+  btnModalYes.addEventListener("click", handleModalYes);
+  btnModalNo.addEventListener("click", handleModalNo);
+  btnEditCancel.addEventListener("click", closeEditModal);
+  btnEditSave.addEventListener("click", function () {
+    if (editTargetCardId === null) return;
+    var newFront = editFrontInput.value.trim();
+    var newBack = editBackInput.value.trim();
+    if (!newFront || !newBack) {
+      alert("앞면과 뒷면을 모두 입력해야 한다.");
+      return;
+    }
+    var card = findCardById(editTargetCardId);
+    if (card) {
+      card.front = newFront;
+      card.back = newBack;
+    }
+    closeEditModal();
+    selectionMode = false;
+    selectedCardIds = [];
+    updateSelectionUI();
+    renderCards();
+  });
+  btnReviewWrong.addEventListener("click", handleReviewWrongButton);
+  // 초기 상태
+  renderCards();
+  updateWrongBadge();
+  showLearnView();
+</script>
+</body>
+</html>
+
