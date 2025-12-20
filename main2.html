@@ -539,6 +539,26 @@
           bottom.className = "card-bottom";
           bottom.innerHTML = "<span>#"+(idx+1)+"</span><span>클릭해서 뒤집기</span>";
 
+          var bottom = document.createElement("div");
+          bottom.className = "card-bottom";
+          var soundBtn = document.createElement("button");
+          soundBtn.type = "button";
+          soundBtn.textContent = "🔊";
+          soundBtn.addEventListener("click", function(e){
+          e.stopPropagation(); // 카드 뒤집기 이벤트로 안 올라가게 막기
+
+          // ✅ 현재 카드에서 단어 부분만 읽기
+          const speakText = text.textContent.trim();   // 여기서 text는 카드 안의 단어/뜻 넣는 그 요소!
+
+           const lang = getLangByDeck(currentDeckKey);  // 영어 덱이면 en-US, 일본어 덱이면 ja-JP
+
+          if (speakText) {
+          speak(speakText, lang);
+          }
+          });
+
+          bottom.appendChild(soundBtn);
+
           div.addEventListener("click", function(){
             var flipped = !!flipState[idx];
             flipped = !flipped;
@@ -678,6 +698,25 @@
 
     // 초기 화면
     showView("deck");
+
+    function speak(text, lang){
+  // 이전 재생 중이면 끊기
+  window.speechSynthesis.cancel();
+
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = lang;   // "en-US" or "ja-JP"
+  u.rate = 1;
+  u.pitch = 1;
+
+  window.speechSynthesis.speak(u);
+}
+
+function getLangByDeck(deckKey){
+  if(deckKey === "english") return "en-US";
+  if(deckKey === "japanese") return "ja-JP";
+  return "en-US";
+}
+
   </script>
 </body>
 </html>
